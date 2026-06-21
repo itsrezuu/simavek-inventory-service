@@ -1,0 +1,10 @@
+.env
+.env.local
+postgres-data/
+inventory_data/
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.log
