@@ -1,6 +1,3 @@
-simavek_inventory_service.sql
-
-
 CREATE TABLE IF NOT EXISTS medicines (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
