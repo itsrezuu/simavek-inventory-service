@@ -57,16 +57,13 @@ BEGIN
             v_current_stock, ABS(p_quantity), v_medicine_name;
     END IF;
 
-    -- Update stok utama
     UPDATE medicines 
     SET stock = v_new_stock, updated_at = NOW()
     WHERE id = p_medicine_id;
 
-    -- Catat riwayat pergerakan stok
     INSERT INTO stock_movements (medicine_id, quantity_change, movement_type, reference_id, notes)
     VALUES (p_medicine_id, p_quantity, p_movement_type, p_reference_id, p_notes);
 
-    -- Kembalikan respons JSON
     RETURN json_build_object(
         'success', true,
         'medicine_id', p_medicine_id,
