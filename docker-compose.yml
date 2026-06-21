@@ -1,34 +1,43 @@
 version: '3.8'
 
 services:
+
   inventory-db:
     image: postgres:15-alpine
     container_name: inventory-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: inventory_db
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-inventory_db}
     ports:
-      - "5433:5432"
+      - "${DB_PORT:-5433}:5432"
     volumes:
       - inventory_data:/var/lib/postgresql/data
+      - ./simavek_inventory_service.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
     networks:
       - apotek-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 
   inventory-hasura:
-    image: hasura/graphql-engine:latest
+    build: .
     container_name: inventory-hasura
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "${HASURA_PORT:-8080}:8080"
     environment:
-      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:postgres@inventory-db:5432/inventory_db
+      HASURA_GRAPHQL_DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@inventory-db:5432/${POSTGRES_DB:-inventory_db}
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
-      HASURA_GRAPHQL_ADMIN_SECRET: myadminsecret
-      HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_ADMIN_SECRET:-myadminsecret}
+      HASURA_GRAPHQL_UNAUTHORIZED_ROLE: ${HASURA_UNAUTHORIZED_ROLE:-public}
     depends_on:
-      - inventory-db
+      inventory-db:
+        condition: service_healthy
     networks:
       - apotek-network
 

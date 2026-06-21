@@ -1,16 +1,20 @@
+FROM hasura/graphql-engine:v2.36.0
 
-FROM php:8.2-fpm-alpine
+LABEL maintainer="SIMAVEK Team"
+LABEL service="inventory-service"
+LABEL description="Inventory Service - Hasura GraphQL Engine"
+LABEL version="1.0.0"
 
-WORKDIR /app
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-RUN apk add --no-cache postgresql-dev \
-    && docker-php-ext-install pdo pdo_pgsql
+ENV HASURA_GRAPHQL_ENABLE_CONSOLE=true
+ENV HASURA_GRAPHQL_CORS_DOMAIN="*"
+ENV HASURA_GRAPHQL_DEV_MODE=true
+ENV HASURA_GRAPHQL_ENABLE_TELEMETRY=false
 
-COPY . .
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/healthz || exit 1
 
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
-    && composer install --no-dev --optimize-autoloader
+EXPOSE 8080
 
-EXPOSE 8000
-
-CMD ["php-fpm"]
+CMD ["graphql-engine", "serve"]

@@ -1,10 +1,11 @@
+.git
+.gitignore
 .env
 .env.local
-postgres-data/
-inventory_data/
+.vscode
+.idea
 .DS_Store
 Thumbs.db
-.vscode/
-.idea/
-*.swp
-*.log
+README.md
+*.md
+*.sql
