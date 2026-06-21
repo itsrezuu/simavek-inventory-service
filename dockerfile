@@ -1,5 +1,4 @@
-# Sesuaikan base image dengan teknologi aplikasimu
-# Contoh untuk Laravel/PHP:
+
 FROM php:8.2-fpm-alpine
 
 WORKDIR /app
