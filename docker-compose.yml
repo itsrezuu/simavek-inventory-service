@@ -1,47 +1,48 @@
 version: '3.8'
 
 services:
-  postgres:
+  inventory-db:
     image: postgres:15-alpine
-    container_name: simavek_inventory_db
+    container_name: simavek-inventory-db
     restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: inventory_db
     ports:
-      - "${DB_PORT}:5432" 
+      - "5433:5432"
     volumes:
-      - pg_data:/var/lib/postgresql/data
-      - ./simavek_inventory_service.sql:/docker-entrypoint-initdb.d/simavek_inventory_service.sql
+      - inventory_db_data:/var/lib/postgresql/data
+      - ./simavek-inventory-service/simavek_inventory_service.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d inventory_db"]
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
       - simavek-network
 
-  hasura:
+  inventory-hasura:
     image: hasura/graphql-engine:v2.36.0
-    container_name: simavek_inventory_hasura
+    container_name: simavek-inventory-hasura
     restart: always
     depends_on:
-      postgres:
+      inventory-db:
         condition: service_healthy
     ports:
-      - "${HASURA_PORT}:8080"
+      - "8080:8080"
     environment:
-      HASURA_GRAPHQL_DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:postgres@inventory-db:5432/inventory_db
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
       HASURA_GRAPHQL_DEV_MODE: "true"
-      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_ADMIN_SECRET}
-      HASURA_GRAPHQL_UNAUTHORIZED_ROLE: ${HASURA_UNAUTHORIZED_ROLE}
+      HASURA_GRAPHQL_ADMIN_SECRET: myadminsecret
+      HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
     networks:
+      - simavek-network
       - simavek-network
 
 volumes:
-  pg_data:
+  inventory_db:
 
 networks:
   simavek-network:
