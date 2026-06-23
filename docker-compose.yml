@@ -13,7 +13,7 @@ services:
       - "5433:5432"
     volumes:
       - inventory_db_data:/var/lib/postgresql/data
-      - ./simavek-inventory-service/simavek_inventory_service.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+      - ./simavek_inventory_service.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d inventory_db"]
       interval: 5s
@@ -39,11 +39,10 @@ services:
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
     networks:
       - simavek-network
-      - simavek-network
 
 volumes:
-  inventory_db:
+  inventory_db_data:
 
 networks:
   simavek-network:
-    driver: bridge
+    external: true
